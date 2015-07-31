@@ -276,9 +276,10 @@ func (q *Queue) Disposed() bool {
 	return q.disposed
 }
 
-// Dispose will dispose of this queue.  Any subsequent
+// Dispose will dispose of this queue and returns
+// the number of items disposed.  Any subsequent
 // calls to Get or Put will return an error.
-func (q *Queue) Dispose() {
+func (q *Queue) Dispose() int64 {
 	q.lock.Lock()
 	defer q.lock.Unlock()
 
@@ -288,8 +289,12 @@ func (q *Queue) Dispose() {
 		waiter.ready <- true
 	}
 
+	numItems := len(q.items)
+
 	q.items = nil
 	q.waiters = nil
+
+	return int64(numItems)
 }
 
 // New is a constructor for a new threadsafe queue.
